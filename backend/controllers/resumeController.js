@@ -2,16 +2,25 @@ const Resume = require('../models/Resume');
 const User = require('../models/User');
 
 // Create Resume
+// Add this to resumeController.js
+
+const { calculateATSScore, generateATSSuggestions } = require('../utils/atsScorer');
+
+// Modify createResume and updateResume to include ATS scoring
 exports.createResume = async (req, res) => {
   try {
+    const atsScore = calculateATSScore(req.body);
+    const aiSuggestions = generateATSSuggestions(req.body, atsScore);
+    
     const resume = new Resume({
       user: req.user.id,
-      ...req.body
+      ...req.body,
+      atsScore,
+      aiSuggestions
     });
     
     await resume.save();
     
-    // Add resume to user's resumes array
     await User.findByIdAndUpdate(
       req.user.id,
       { $push: { resumes: resume._id } }
