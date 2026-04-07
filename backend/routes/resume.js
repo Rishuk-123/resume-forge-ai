@@ -14,5 +14,6 @@ router.get('/', auth, getResumes);
 router.get('/:id', auth, getResume);
 router.put('/:id', auth, updateResume);
 router.delete('/:id', auth, deleteResume);
+router.get('/:id/pdf', auth, downloadPDF);
 
 module.exports = router;

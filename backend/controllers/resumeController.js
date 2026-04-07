@@ -1,5 +1,7 @@
 const Resume = require('../models/Resume');
 const User = require('../models/User');
+const path = require('path');
+const { generatePDF } = require('../utils/pdfGenerator');
 
 // Create Resume
 // Add this to resumeController.js
@@ -119,3 +121,40 @@ exports.deleteResume = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+exports.downloadPDF = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
+    
+    if (!resume) {
+      return res.status(404).json({ msg: 'Resume not found' });
+    }
+    
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+    
+    const fileName = `resume_${resume.personalInfo.fullName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+    const filePath = path.join(__dirname, '../temp', fileName);
+    
+    // Create temp directory if it doesn't exist
+    const fs = require('fs');
+    if (!fs.existsSync(path.join(__dirname, '../temp'))) {
+      fs.mkdirSync(path.join(__dirname, '../temp'));
+    }
+    
+    await generatePDF(resume, filePath);
+    
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error(err);
+      }
+      // Delete file after download
+      fs.unlinkSync(filePath);
+    });
+    
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
