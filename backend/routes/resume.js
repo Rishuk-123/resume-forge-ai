@@ -6,7 +6,8 @@ const {
   getResumes,
   getResume,
   updateResume,
-  deleteResume
+  deleteResume,
+  downloadPDF
 } = require('../controllers/resumeController');
 
 router.post('/', auth, createResume);
